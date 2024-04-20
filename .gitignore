@@ -1,2 +1,6 @@
+Alphabet sounds/
+common three letter word sounds/
 env/
 .env
+tts_output.wav
+
