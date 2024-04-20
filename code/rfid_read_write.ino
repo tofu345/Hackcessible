@@ -2,10 +2,10 @@
 
 #include <MFRC522.h>
 #include <SPI.h>
-#define RST_PIN 9 // reset pin
-#define SS_PIN 10 // SS or the slave select pin
+#define RESET_PIN 9 // reset pin
+#define RFID_SS_PIN 10 // SS or the slave select pin
 
-MFRC522 rfid(SS_PIN, RST_PIN);
+MFRC522 rfid(RFID_SS_PIN, RESET_PIN);
 MFRC522::MIFARE_Key rfid_key; // stores the card information
 
 int writeBlock(MFRC522 *rfid, int blockNumber, byte data[]);
