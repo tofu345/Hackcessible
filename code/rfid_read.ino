@@ -87,8 +87,12 @@ void loop() {
         Serial.println("no data on card");
     } else {
         int idx = rfid_reader.uid.uidByte[rfid_reader.uid.size - 1];
-        Serial.print("Value: ");
-        Serial.println(characters[idx]);
+        if (idx >= num_characters) {
+            Serial.println("invalid data on card");
+        } else {
+            Serial.print("Value: ");
+            Serial.println(characters[idx]);
+        }
     }
 
     rfid_reader.PICC_HaltA();
