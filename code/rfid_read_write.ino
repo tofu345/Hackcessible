@@ -7,8 +7,6 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN); // Create MFRC522 instance.
 MFRC522::MIFARE_Key key;
 
-byte curr = 0x01;
-
 void setup() {
     Serial.begin(9600);
     while (!Serial)
@@ -58,8 +56,11 @@ void loop() {
     // that is: sector #1, covering block #4 up to and including block #7
     byte sector = 1;
     byte blockAddr = 4;
+
+    static byte curr = 0x01;
     byte dataBlock[] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, curr};
+
     byte trailerBlock = 7;
     MFRC522::StatusCode status;
     byte buffer[18];
