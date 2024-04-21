@@ -3,11 +3,11 @@
 #include <MFRC522.h>
 #include <SPI.h>
 
-#define RST_PIN 9
-#define SS_1_PIN 10
+#define RST_PIN 5
+#define SS_1_PIN 53
 #define SS_2_PIN 8
 
-#define NUM_READERS 2
+#define NUM_READERS 1
 
 byte rfid_ss_pins[] = {SS_1_PIN, SS_2_PIN};
 MFRC522 rfids[NUM_READERS];
