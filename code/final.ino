@@ -54,7 +54,7 @@ void setup() {
         rfids[i].PCD_Init(rfid_ss_pins[i], RST_PIN);
 
         Serial.print("Reader ");
-        Serial.print(i);
+        Serial.print(i + 1);
         Serial.print(": ");
         rfids[i].PCD_DumpVersionToSerial();
         Serial.println();
@@ -97,16 +97,13 @@ int read_rfid_card_data(MFRC522 *reader) {
         reader->PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, trailerBlock,
                                  &rfid_key, &(reader->uid));
     if (status != MFRC522::STATUS_OK) {
-        Serial.print("PCD_Authenticate() failed: ");
-        Serial.println(reader->GetStatusCodeName(status));
         return -1;
     }
 
     // Read data on card to buffer
     status = reader->MIFARE_Read(blockAddr, buffer, &size);
     if (status != MFRC522::STATUS_OK) {
-        Serial.print("MIFARE_Read() failed: ");
-        Serial.println(reader->GetStatusCodeName(status));
+        return -1;
     }
 
     reader->PICC_HaltA();

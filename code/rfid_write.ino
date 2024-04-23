@@ -26,7 +26,7 @@ void setup() {
 
     num_characters = sizeof(characters) / sizeof(characters[0]);
 
-    Serial.println("\nWrite rfid card data\n");
+    Serial.println("\nWrite rfid card data");
 
     // Serial.print("Using key (for A and B):");
     // dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
@@ -36,59 +36,67 @@ void setup() {
 
 void loop() {
     static byte current_char = 0;
+    static bool autoincrement = false;
 
-    Serial.print("w - write '");
-    Serial.print(characters[current_char]);
-    Serial.print("', n - write '");
-    if (current_char + 1 < num_characters) {
-        Serial.print(characters[current_char + 1]);
-    } else {
-        Serial.print(characters[0]);
-    }
-    Serial.println("', c - enter char to write");
-
-    while (Serial.available() <= 0)
-        ;
-
-    switch (Serial.read()) {
-    case 'w':
-        break;
-    case 'n':
+    if (autoincrement)
         current_char++;
-        break;
-    case 'c': {
-        Serial.println("enter char to write");
-
-        while (1) {
-            if (Serial.available() <= 0) {
-                continue;
-            }
-
-            // For some reason it stops waiting for user input after a while so
-            // i had to do this shite
-            String input = Serial.readString();
-            input.trim();
-            int arrLen = input.length();
-            if (arrLen == 0)
-                continue;
-
-            char charArr[arrLen];
-            input.toCharArray(charArr, arrLen);
-
-            int idx = find_char(input[0]);
-            if (idx == -1) {
-                Serial.println("character not found");
-                return;
-            } else {
-                current_char = idx;
-                break;
-            }
+    else {
+        Serial.print("w - write '");
+        Serial.print(characters[current_char]);
+        Serial.print("', n - write '");
+        if (current_char + 1 < num_characters) {
+            Serial.print(characters[current_char + 1]);
+        } else {
+            Serial.print(characters[0]);
         }
+        Serial.println("', a - autoincrement, c - enter char to write");
 
-        break;
-    }
-    default:
-        return;
+        while (Serial.available() <= 0)
+            ;
+
+        switch (Serial.read()) {
+        case 'w':
+            break;
+        case 'n':
+            current_char++;
+            break;
+        case 'a':
+            autoincrement = !autoincrement;
+            break;
+        case 'c': {
+            Serial.println("enter char to write");
+
+            while (1) {
+                if (Serial.available() <= 0) {
+                    continue;
+                }
+
+                // For some reason it stops waiting for user input after a while
+                // so i had to do this shite
+                String input = Serial.readString();
+                input.trim();
+                int arrLen = input.length();
+                if (arrLen == 0)
+                    continue;
+
+                char charArr[arrLen];
+                input.toCharArray(charArr, arrLen);
+
+                int idx = find_char(input[0]);
+                if (idx == -1) {
+                    Serial.println("character not found");
+                    return;
+                } else {
+                    current_char = idx;
+                    break;
+                }
+            }
+
+            break;
+        }
+        default:
+            return;
+        }
     }
 
     Serial.print("Writing: ");
@@ -99,6 +107,7 @@ void loop() {
     while (1) {
         if (Serial.available() > 0) {
             if (Serial.read() == 'q') {
+                autoincrement = false;
                 Serial.println("Write aborted");
                 break;
             }
