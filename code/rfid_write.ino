@@ -26,72 +26,92 @@ void setup() {
 
     num_characters = sizeof(characters) / sizeof(characters[0]);
 
-    Serial.println("\nScan a card to write new data\n");
+    Serial.println("\nWrite rfid card data\n");
 
     // Serial.print("Using key (for A and B):");
     // dump_byte_array(key.keyByte, MFRC522::MF_KEY_SIZE);
     // Serial.println();
     // Serial.println("BEWARE: Data will be written to the PICC, in sector #1");
-
-    Serial.println("-----------------------------");
-    Serial.println("start: write current");
-    Serial.println("next: write next");
-    Serial.println("res: start from first char");
-    Serial.println("-----------------------------");
 }
 
 void loop() {
-    static byte current_char_idx = 0;
+    static byte current_char = 0;
 
-    Serial.print("Preparing to write: ");
-    Serial.println(characters[current_char_idx]);
-    Serial.println("Waiting for input...");
+    Serial.print("w - write '");
+    Serial.print(characters[current_char]);
+    Serial.print("', n - write '");
+    if (current_char + 1 < num_characters) {
+        Serial.print(characters[current_char + 1]);
+    } else {
+        Serial.print(characters[0]);
+    }
+    Serial.println("', c - enter char to write");
 
-    // wait until user enters something
     while (Serial.available() <= 0)
         ;
 
-    String input = Serial.readString();
-    input.trim();
+    switch (Serial.read()) {
+    case 'w':
+        break;
+    case 'n':
+        current_char++;
+        break;
+    case 'c': {
+        Serial.println("enter char to write");
 
-    if (input == "s" || input == "start") {
-        Serial.println();
-    } else if (input == "n" || input == "next") {
-        current_char_idx++;
-        if ((int)current_char_idx > num_characters) {
-            Serial.println("Reached last character, going back to first");
-            current_char_idx = 0;
+        while (1) {
+            if (Serial.available() <= 0) {
+                continue;
+            }
+
+            // For some reason it stops waiting for user input after a while so
+            // i had to do this shite
+            String input = Serial.readString();
+            input.trim();
+            int arrLen = input.length();
+            if (arrLen == 0)
+                continue;
+
+            char charArr[arrLen];
+            input.toCharArray(charArr, arrLen);
+
+            int idx = find_char(input[0]);
+            if (idx == -1) {
+                Serial.println("character not found");
+                return;
+            } else {
+                current_char = idx;
+                break;
+            }
         }
 
-        Serial.print("Preparing to write: ");
-        Serial.println(characters[current_char_idx]);
-    } else if (input == "r" || input == "restart") {
-        current_char_idx = 0;
-        Serial.println("Restarting from first character");
-    } else {
+        break;
+    }
+    default:
         return;
     }
 
+    Serial.print("Writing: ");
+    Serial.println(characters[current_char]);
     Serial.println("Waiting for card...");
+    Serial.println("q - abort");
 
     while (1) {
         if (Serial.available() > 0) {
-            String input = Serial.readString();
-            input.trim();
-            if (input == "q" || input == "abort") {
+            if (Serial.read() == 'q') {
                 Serial.println("Write aborted");
                 break;
             }
         }
 
-        int ok = write_data_to_card(&rfid_reader, current_char_idx);
+        int ok = write_data_to_card(&rfid_reader, current_char);
         if (ok == 0) {
             break;
         }
     }
 }
 
-int write_data_to_card(MFRC522 *reader, int current_char_idx) {
+int write_data_to_card(MFRC522 *reader, int current_char) {
     if (!reader->PICC_IsNewCardPresent())
         return -1;
     if (!reader->PICC_ReadCardSerial())
@@ -111,7 +131,7 @@ int write_data_to_card(MFRC522 *reader, int current_char_idx) {
     byte blockAddr = 4;
     byte dataToWrite[] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)current_char_idx};
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)current_char};
     byte trailerBlock = 7;
     byte buffer[18];
     byte size = sizeof(buffer);
@@ -126,7 +146,7 @@ int write_data_to_card(MFRC522 *reader, int current_char_idx) {
     Serial.print("Writing char: ");
     // dump_byte_array(dataToWrite, 16);
     // Serial.print(" ");
-    Serial.println(characters[current_char_idx]);
+    Serial.println(characters[current_char]);
 
     // write to card
     status = reader->MIFARE_Write(blockAddr, dataToWrite, 16);
@@ -163,4 +183,14 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
         Serial.print(buffer[i] < 0x10 ? " 0" : " ");
         Serial.print(buffer[i], HEX);
     }
+}
+
+int find_char(char target) {
+    for (int i = 0; i < num_characters; i++) {
+        if (characters[i] == target) {
+            return i;
+        }
+    }
+
+    return -1;
 }
