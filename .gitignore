@@ -3,4 +3,5 @@ common three letter word sounds/
 env/
 .env
 tts_output.wav
+sd card data/
 

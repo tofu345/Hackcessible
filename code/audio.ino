@@ -2,7 +2,7 @@
 #include "SPI.h"
 #include "TMRpcm.h"
 
-#define SD_PIN 5
+#define SD_PIN 53
 #define SPEAKER_PIN 4
 
 // https://github.com/TMRh20/TMRpcm/wiki
