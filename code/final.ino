@@ -18,11 +18,11 @@
 #define SD_ChipSelectPin 53
 
 #define RST_PIN 5
-#define SS_1_PIN 53
-#define SS_2_PIN 7
+#define RFID_1_SS_PIN 53
+#define RFID_2_SS_PIN 7
 #define NUM_READERS 2
 
-byte rfid_ss_pins[] = {SS_1_PIN, SS_2_PIN};
+byte rfid_ss_pins[] = {RFID_1_SS_PIN, RFID_2_SS_PIN};
 MFRC522 rfids[NUM_READERS];
 MFRC522::MIFARE_Key rfid_key;
 unsigned long rfid_prev_read_times[NUM_READERS];
