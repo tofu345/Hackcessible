@@ -12,10 +12,12 @@
 #include "SPI.h"
 #include "TMRpcm.h"
 #include <MFRC522.h>
+#include <SD.h>
 #include <SPI.h>
+#include <string.h>
 
-#define SPEAKER_PIN 11
-#define SD_ChipSelectPin 53
+#define SD_CS_PIN 49 // Chip select pin for SD card
+#define SPEAKER_PIN 5
 
 #define RST_PIN 5
 #define RFID_1_SS_PIN 53
@@ -29,13 +31,14 @@ unsigned long rfid_prev_read_times[NUM_READERS];
 
 TMRpcm audio;
 
-char characters[26] = {
+const int num_characters = 26;
+char characters[num_characters] = {
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 };
-int num_characters = 0;
 
 char letter[4] = "---";
+char prev_letters[4] = "---";
 
 unsigned long timeStamp = 0;
 unsigned long elapsedTime = 0;
@@ -49,12 +52,15 @@ void setup() {
 
     SPI.begin();
 
-    audio.speakerPin = SPEAKER_PIN;
-    audio.setVolume(7);
-    audio.quality(0);
+    // if (!SD.begin(SD_CS_PIN)) {
+    //     Serial.println("SD card initialization failed");
+    //     while (1)
+    //         ;
+    // }
 
-    // automagically calculate number of characters
-    num_characters = sizeof(characters) / sizeof(characters[0]);
+    // audio.speakerPin = SPEAKER_PIN;
+    // audio.setVolume(7);
+    // audio.quality(0);
 
     for (byte i = 0; i < 6; i++) {
         rfid_key.keyByte[i] = 0xFF;
@@ -88,8 +94,13 @@ void loop() {
             }
             rfid_prev_read_times[i] = millis();
 
+            if (letter[i] == '-') {
+                // play letter sound
+                // static char filename[] = " .wav";
+                // filename[0] = letter[i];
+                // audio.play(filename);
+            }
             letter[i] = characters[idx];
-            // play letter sound
         }
 
         Serial.println(letter);
@@ -99,6 +110,13 @@ void loop() {
 
     if (letter[0] != '-' && letter[1] != '-' && letter[2] != '-') {
         // play word sound
+        // char filename[num_characters + 5];
+        // sprintf(filename, "%s.wav", letter);
+        // if (!SD.exists(filename)) {
+        //     return;
+        // }
+        //
+        // audio.play(filename);
     }
 }
 
