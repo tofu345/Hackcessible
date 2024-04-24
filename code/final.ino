@@ -19,11 +19,14 @@
 
 #define RST_PIN 5
 #define SS_1_PIN 53
-#define NUM_READERS 1
+#define SS_2_PIN 7
+#define NUM_READERS 2
 
-byte rfid_ss_pins[] = {SS_1_PIN};
+byte rfid_ss_pins[] = {SS_1_PIN, SS_2_PIN};
 MFRC522 rfids[NUM_READERS];
 MFRC522::MIFARE_Key rfid_key;
+unsigned long rfid_prev_read_times[NUM_READERS];
+
 TMRpcm audio;
 
 char characters[26] = {
@@ -31,6 +34,13 @@ char characters[26] = {
     'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 };
 int num_characters = 0;
+
+char letter[4] = "---";
+
+unsigned long timeStamp = 0;
+unsigned long elapsedTime = 0;
+unsigned long cardSampleRate = 1000; // milliseconds
+unsigned long cardTimeout = 1500;    // milliseconds
 
 void setup() {
     Serial.begin(9600);
@@ -50,7 +60,11 @@ void setup() {
         rfid_key.keyByte[i] = 0xFF;
     }
 
+    Serial.println(
+        "if firmware version is (unknown) check connections and pins");
+
     for (int i = 0; i < NUM_READERS; i++) {
+        rfid_prev_read_times[i] = 0;
         rfids[i].PCD_Init(rfid_ss_pins[i], RST_PIN);
 
         Serial.print("Reader ");
@@ -62,18 +76,33 @@ void setup() {
 }
 
 void loop() {
-    for (int i = 0; i < NUM_READERS; i++) {
-        int idx = read_rfid_card_data(&rfids[i]);
-        if (idx != -1) {
-            Serial.print("Reader ");
-            Serial.print(i + 1);
-            Serial.print(" read value: ");
-            Serial.println(characters[idx]);
+    elapsedTime = millis() - timeStamp;
+    if (elapsedTime > cardSampleRate) {
+        for (int i = 0; i < NUM_READERS; i++) {
+            int idx = read_rfid_card_data(&rfids[i]);
+            if (idx == -1) {
+                if (millis() - rfid_prev_read_times[i] > cardTimeout) {
+                    letter[i] = '-';
+                }
+                continue;
+            }
+            rfid_prev_read_times[i] = millis();
+
+            letter[i] = characters[idx];
+            // play letter sound
         }
+
+        Serial.println(letter);
+
+        timeStamp = millis();
+    }
+
+    if (letter[0] != '-' && letter[1] != '-' && letter[2] != '-') {
+        // play word sound
     }
 }
 
-// Tries to read data stored in the last bit of the rfid card
+// Tries to read data stored in the last byte of the rfid card
 int read_rfid_card_data(MFRC522 *reader) {
     if (!reader->PICC_IsNewCardPresent())
         return -1;
@@ -106,7 +135,7 @@ int read_rfid_card_data(MFRC522 *reader) {
         return -1;
     }
 
-    reader->PICC_HaltA();
+    // reader->PICC_HaltA(); // This makes it read a card only once
     reader->PCD_StopCrypto1();
 
     int idx = buffer[buffer_size - 1];
