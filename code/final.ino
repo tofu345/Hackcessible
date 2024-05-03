@@ -30,15 +30,7 @@ MFRC522::MIFARE_Key rfid_key;
 unsigned long rfid_prev_read_times[NUM_READERS];
 
 TMRpcm audio;
-
-const int num_characters = 26;
-char characters[num_characters] = {
-    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-};
-
-char letter[4] = "---";
-char prev_letters[4] = "---";
+char letters[4] = "---";
 
 unsigned long timeStamp = 0;
 unsigned long elapsedTime = 0;
@@ -66,8 +58,8 @@ void setup() {
         rfid_key.keyByte[i] = 0xFF;
     }
 
-    Serial.println(
-        "if firmware version is (unknown) check connections and pins");
+    Serial.println("if firmware version == (unknown) check connections and "
+                   "pins then restart");
 
     for (int i = 0; i < NUM_READERS; i++) {
         rfid_prev_read_times[i] = 0;
@@ -82,36 +74,39 @@ void setup() {
 }
 
 void loop() {
+    // read from all rfid readers every cardSampleRate ms
     elapsedTime = millis() - timeStamp;
     if (elapsedTime > cardSampleRate) {
         for (int i = 0; i < NUM_READERS; i++) {
             int idx = read_rfid_card_data(&rfids[i]);
             if (idx == -1) {
+                // wait cardTimeout ms after card is no longer detected before
+                // removing letter from letters
                 if (millis() - rfid_prev_read_times[i] > cardTimeout) {
-                    letter[i] = '-';
+                    letters[i] = '-';
                 }
                 continue;
             }
             rfid_prev_read_times[i] = millis();
 
-            if (letter[i] == '-') {
-                // play letter sound
+            if (letters[i] == '-') {
+                // play letter sound the first time the letter is placed
                 // static char filename[] = " .wav";
-                // filename[0] = letter[i];
+                // filename[0] = letters[i];
                 // audio.play(filename);
             }
-            letter[i] = characters[idx];
+            letters[i] = (char)(idx + 97);
         }
 
-        Serial.println(letter);
+        Serial.println(letters);
 
         timeStamp = millis();
     }
 
-    if (letter[0] != '-' && letter[1] != '-' && letter[2] != '-') {
-        // play word sound
-        // char filename[num_characters + 5];
-        // sprintf(filename, "%s.wav", letter);
+    // play letters (word) sound
+    if (letters[0] != '-' && letters[1] != '-' && letters[2] != '-') {
+        // char filename[8];
+        // sprintf(filename, "%s.wav", letters);
         // if (!SD.exists(filename)) {
         //     return;
         // }
@@ -121,6 +116,7 @@ void loop() {
 }
 
 // Tries to read data stored in the last byte of the rfid card
+// returns -1 if read failed or card removed
 int read_rfid_card_data(MFRC522 *reader) {
     if (!reader->PICC_IsNewCardPresent())
         return -1;
@@ -153,11 +149,11 @@ int read_rfid_card_data(MFRC522 *reader) {
         return -1;
     }
 
-    // reader->PICC_HaltA(); // This makes it read a card only once
+    // reader->PICC_HaltA(); // commenting this makes it read a card only once
     reader->PCD_StopCrypto1();
 
     int idx = buffer[buffer_size - 1];
-    if (idx >= num_characters) {
+    if (idx < 97 || idx > 122) {
         return -1;
     }
     return idx;
