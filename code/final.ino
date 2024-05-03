@@ -31,6 +31,7 @@ unsigned long rfid_prev_read_times[NUM_READERS];
 
 TMRpcm audio;
 char letters[4] = "---";
+bool wordPlayed = false;
 
 unsigned long timeStamp = 0;
 unsigned long elapsedTime = 0;
@@ -94,6 +95,7 @@ void loop() {
                 // static char filename[] = " .wav";
                 // filename[0] = letters[i];
                 // audio.play(filename);
+                wordPlayed = false;
             }
             letters[i] = (char)(idx + 97);
         }
@@ -104,7 +106,8 @@ void loop() {
     }
 
     // play letters (word) sound
-    if (letters[0] != '-' && letters[1] != '-' && letters[2] != '-') {
+    if (letters[0] != '-' && letters[1] != '-' && letters[2] != '-' && !wordPlayed) {
+        wordPlayed = true;
         // char filename[8];
         // sprintf(filename, "%s.wav", letters);
         // if (!SD.exists(filename)) {
