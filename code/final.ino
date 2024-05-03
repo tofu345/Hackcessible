@@ -149,7 +149,7 @@ int read_rfid_card_data(MFRC522 *reader) {
         return -1;
     }
 
-    // reader->PICC_HaltA(); // commenting this makes it read a card only once
+    // reader->PICC_HaltA(); // uncommenting this makes it read a card only once
     reader->PCD_StopCrypto1();
 
     int idx = buffer[buffer_size - 1];
