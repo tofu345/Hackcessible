@@ -1,7 +1,7 @@
 /*
  * Rfid Pins
  * ---------
- * SS     53 -- Should be connected to each rfid seperately
+ * SS     53 -- Should be connected to each rfid reader seperately
  *           -- everything else can be shared
  * RST    5
  * MOSI   51
