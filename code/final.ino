@@ -90,14 +90,15 @@ void loop() {
             }
             rfid_prev_read_times[i] = millis();
 
-            if (letters[i] == '-') {
+            char ch = (char)(idx + 97);
+            if (letters[i] != ch) {
                 // play letter sound the first time the letter is placed
                 // static char filename[] = " .wav";
                 // filename[0] = letters[i];
                 // audio.play(filename);
                 wordPlayed = false;
             }
-            letters[i] = (char)(idx + 97);
+            letters[i] = ch;
         }
 
         Serial.println(letters);
@@ -106,7 +107,8 @@ void loop() {
     }
 
     // play letters (word) sound
-    if (letters[0] != '-' && letters[1] != '-' && letters[2] != '-' && !wordPlayed) {
+    if (letters[0] != '-' && letters[1] != '-' && letters[2] != '-' &&
+        !wordPlayed) {
         wordPlayed = true;
         // char filename[8];
         // sprintf(filename, "%s.wav", letters);
