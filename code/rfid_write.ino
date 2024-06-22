@@ -23,7 +23,7 @@ void setup() {
 }
 
 void loop() {
-    char current_char = 'a' - 1;
+    char current_char = 'a';
 
     while (1) {
         Serial.print("Waiting for card to write ");
@@ -75,10 +75,11 @@ int write_data_to_card(MFRC522 *reader, int current_char) {
 
     byte sector = 1;
     byte blockAddr = 4;
-    int dataToWriteSize = 16;
     byte dataToWrite[] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)current_char};
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, (byte)current_char
+    };
+    int dataToWriteSize = sizeof(dataToWrite) / sizeof(dataToWrite[0]);
     byte trailerBlock = 7;
     byte buffer[18];
     byte size = sizeof(buffer);
