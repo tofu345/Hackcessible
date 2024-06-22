@@ -55,6 +55,7 @@ void setup() {
     // audio.setVolume(7);
     // audio.quality(0);
 
+    // TODO: create a secure key
     for (byte i = 0; i < 6; i++) {
         rfid_key.keyByte[i] = 0xFF;
     }
